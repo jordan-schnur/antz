@@ -28,6 +28,12 @@ console.log('🎮 Pixi Application created:', {
 // Add the canvas to the DOM
 document.getElementById('game-container').appendChild(app.view);
 
+// FPS Counter
+const fpsCounter = document.getElementById('fps-counter');
+let lastTime = performance.now();
+let frameCount = 0;
+let fps = 60;
+
 // Settings Panel Logic
 const settingsPanel = document.getElementById('settings-panel');
 const settingsToggle = document.getElementById('settings-toggle');
@@ -211,10 +217,22 @@ initializeGame().then(() => {
 });
 
 // Main game loop
-// TEMPORARILY DISABLED TO TEST IF UPDATE IS CAUSING INVISIBILITY
 app.ticker.add((ticker) => {
     const delta = ticker.deltaTime;
     // gameWorld.update(delta);
+
+    // Update FPS counter
+    frameCount++;
+    const currentTime = performance.now();
+    const deltaTime = currentTime - lastTime;
+
+    // Update FPS display every 500ms for smooth readability
+    if (deltaTime >= 500) {
+        fps = Math.round((frameCount * 1000) / deltaTime);
+        fpsCounter.textContent = `FPS: ${fps}`;
+        frameCount = 0;
+        lastTime = currentTime;
+    }
 });
 
 console.log('Canvas initialized! Ready to render ants 🐜');

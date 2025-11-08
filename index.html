@@ -200,9 +200,29 @@
         #settings-toggle.hidden {
             display: none;
         }
+
+        /* FPS Counter */
+        #fps-counter {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #00ff00;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 1000;
+            user-select: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+        }
     </style>
 </head>
 <body>
+    <!-- FPS Counter -->
+    <div id="fps-counter">FPS: 60</div>
+
     <div id="game-container"></div>
 
     <!-- Settings Toggle Button -->
