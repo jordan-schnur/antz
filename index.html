@@ -5,41 +5,278 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Antz - Canvas Animation</title>
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
             overflow: hidden;
             background-color: #2c3e50;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            height: 100vh;
+        }
+
+        #game-container {
+            width: 100%;
+            height: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            font-family: Arial, sans-serif;
         }
-        #game-container {
-            position: relative;
+
+        /* Settings Panel */
+        #settings-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            z-index: 1000;
         }
-        #instructions {
-            position: absolute;
-            top: 10px;
-            left: 10px;
+
+        #settings-header {
+            background: #34495e;
             color: white;
-            background: rgba(0, 0, 0, 0.7);
             padding: 15px;
-            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #settings-header h3 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        #close-settings {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        #close-settings:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background: #ecf0f1;
+            border-bottom: 2px solid #bdc3c7;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
             font-size: 14px;
-            max-width: 300px;
+            font-weight: 500;
+            color: #7f8c8d;
+            transition: all 0.2s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: #dfe6e9;
+            color: #2c3e50;
+        }
+
+        .tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+            background: white;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Settings Section */
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+
+        .resolution-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        .resolution-btn {
+            padding: 10px;
+            background: #ecf0f1;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #2c3e50;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .resolution-btn:hover {
+            background: #dfe6e9;
+            border-color: #95a5a6;
+        }
+
+        .resolution-btn.active {
+            background: #3498db;
+            border-color: #2980b9;
+            color: white;
+        }
+
+        .resolution-info {
+            margin-top: 12px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #34495e;
+        }
+
+        /* Settings Toggle Button */
+        #settings-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(52, 73, 94, 0.9);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 999;
+            transition: all 0.2s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #settings-toggle:hover {
+            background: rgba(41, 128, 185, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        #settings-panel.hidden {
+            display: none;
+        }
+
+        #settings-toggle.hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div id="game-container">
-        <div id="instructions">
-            <h3 style="margin-top: 0;">Antz Canvas Demo</h3>
-            <p>Place your ant image in the project folder and update the path in index.js</p>
-            <p>The canvas is ready for real-time rendering!</p>
+    <div id="game-container"></div>
+
+    <!-- Settings Toggle Button -->
+    <button id="settings-toggle">⚙️ Settings</button>
+
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="hidden">
+        <div id="settings-header">
+            <h3>⚙️ Settings</h3>
+            <button id="close-settings">✕</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-tab="display">Display</button>
+            <button class="tab" data-tab="simulation">Simulation</button>
+            <button class="tab" data-tab="about">About</button>
+        </div>
+
+        <div class="tab-content active" id="display-tab">
+            <div class="setting-group">
+                <label class="setting-label">Canvas Resolution</label>
+                <div class="resolution-grid">
+                    <button class="resolution-btn" data-resolution="800x600">800×600</button>
+                    <button class="resolution-btn" data-resolution="1024x768">1024×768</button>
+                    <button class="resolution-btn active" data-resolution="1280x720">1280×720</button>
+                    <button class="resolution-btn" data-resolution="1920x1080">1920×1080</button>
+                    <button class="resolution-btn" data-resolution="2560x1440">2560×1440</button>
+                    <button class="resolution-btn" data-resolution="3840x2160">3840×2160</button>
+                </div>
+                <div class="resolution-info">
+                    Current: <strong id="current-resolution">1280×720</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="simulation-tab">
+            <div class="setting-group">
+                <label class="setting-label">Number of Ants</label>
+                <div class="resolution-grid">
+                    <button class="resolution-btn ant-count-btn" data-count="10">10</button>
+                    <button class="resolution-btn ant-count-btn active" data-count="100">100</button>
+                    <button class="resolution-btn ant-count-btn" data-count="500">500</button>
+                    <button class="resolution-btn ant-count-btn" data-count="1000">1,000</button>
+                    <button class="resolution-btn ant-count-btn" data-count="2500">2,500</button>
+                    <button class="resolution-btn ant-count-btn" data-count="5000">5,000</button>
+                </div>
+                <div class="resolution-info">
+                    Active Ants: <strong id="current-ant-count">100</strong>
+                </div>
+            </div>
+
+            <div class="setting-group">
+                <label class="setting-label">Custom Count</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="custom-ant-count" min="1" max="10000" value="100"
+                           style="flex: 1; padding: 8px; border: 2px solid #bdc3c7; border-radius: 6px; font-size: 13px;">
+                    <button id="apply-custom-count" class="resolution-btn" style="grid-column: span 1;">Apply</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="about-tab">
+            <div class="setting-group">
+                <p style="font-size: 13px; color: #2c3e50; line-height: 1.6;">
+                    <strong>Antz Canvas Project</strong><br>
+                    Real-time canvas rendering with Pixi.js
+                </p>
+                <p style="font-size: 12px; color: #7f8c8d; margin-top: 10px;">
+                    Click resolution presets to resize the canvas instantly.
+                </p>
+            </div>
         </div>
     </div>
+
     <script type="module" src="index.js"></script>
 </body>
 </html>

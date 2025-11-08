@@ -1,102 +1,182 @@
 import * as PIXI from 'pixi.js';
+import { GameWorld } from './src/world/GameWorld.js';
 
 console.log('🐜 Antz Canvas Project - Happy developing ✨');
 
+// Default resolution
+let currentWidth = 1280;
+let currentHeight = 720;
+
 // Create the Pixi Application
 const app = new PIXI.Application({
-    width: 800,
-    height: 600,
+    width: currentWidth,
+    height: currentHeight,
     backgroundColor: 0x1099bb,
     resolution: window.devicePixelRatio || 1,
     autoDensity: true,
 });
+globalThis.__PIXI_APP__ = app;
 
 // Add the canvas to the DOM
 document.getElementById('game-container').appendChild(app.view);
 
-// Create a container for our ant(s)
-const antContainer = new PIXI.Container();
-app.stage.addChild(antContainer);
+// Settings Panel Logic
+const settingsPanel = document.getElementById('settings-panel');
+const settingsToggle = document.getElementById('settings-toggle');
+const closeSettings = document.getElementById('close-settings');
+const tabs = document.querySelectorAll('.tab');
+const tabContents = document.querySelectorAll('.tab-content');
+const resolutionButtons = document.querySelectorAll('.resolution-btn');
+const currentResolutionDisplay = document.getElementById('current-resolution');
 
-// Example: Create a placeholder ant (circle) until you import an actual ant image
-// Replace this with your actual ant image loading code
-const createPlaceholderAnt = (x, y) => {
-    const antGraphics = new PIXI.Graphics();
-
-    // Draw a simple ant shape as placeholder
-    // Body
-    antGraphics.beginFill(0x000000);
-    antGraphics.drawCircle(0, 0, 15);
-    antGraphics.drawCircle(-10, -5, 10);
-    antGraphics.drawCircle(10, 5, 10);
-    antGraphics.endFill();
-
-    // Antennae
-    antGraphics.lineStyle(2, 0x000000);
-    antGraphics.moveTo(-8, -12);
-    antGraphics.lineTo(-15, -20);
-    antGraphics.moveTo(-3, -12);
-    antGraphics.lineTo(-5, -20);
-
-    antGraphics.x = x;
-    antGraphics.y = y;
-
-    return antGraphics;
-};
-
-// Function to load and display your ant image
-// Uncomment and use this when you have an ant image
-const loadAntImage = async (imagePath, x, y) => {
-    try {
-        const texture = await PIXI.Assets.load(imagePath);
-        const antSprite = new PIXI.Sprite(texture);
-
-        // Center the sprite anchor
-        antSprite.anchor.set(0.5);
-        antSprite.x = x;
-        antSprite.y = y;
-
-        // Optional: scale the ant to a reasonable size
-        antSprite.scale.set(0.5);
-
-        antContainer.addChild(antSprite);
-        return antSprite;
-    } catch (error) {
-        console.error('Failed to load ant image:', error);
-        console.log('Using placeholder ant instead');
-        const placeholder = createPlaceholderAnt(x, y);
-        antContainer.addChild(placeholder);
-        return placeholder;
-    }
-};
-
-// Create a placeholder ant in the center
-const centerAnt = createPlaceholderAnt(app.screen.width / 2, app.screen.height / 2);
-antContainer.addChild(centerAnt);
-
-// Example animation: Make the ant move in a circle
-let time = 0;
-const radius = 100;
-const centerX = app.screen.width / 2;
-const centerY = app.screen.height / 2;
-
-// Real-time rendering loop
-app.ticker.add((ticker) => {
-    time += ticker.deltaTime * 0.02;
-
-    // Animate the ant in a circular path
-    centerAnt.x = centerX + Math.cos(time) * radius;
-    centerAnt.y = centerY + Math.sin(time) * radius;
-
-    // Rotate the ant to face the direction of movement
-    centerAnt.rotation = time + Math.PI / 2;
+// Toggle settings panel
+settingsToggle.addEventListener('click', () => {
+    settingsPanel.classList.remove('hidden');
+    settingsToggle.classList.add('hidden');
 });
 
-// To use your own ant image, uncomment this and provide the path:
-loadAntImage('./ant.png', app.screen.width / 2, app.screen.height / 2);
+closeSettings.addEventListener('click', () => {
+    settingsPanel.classList.add('hidden');
+    settingsToggle.classList.remove('hidden');
+});
+
+// Tab switching
+tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+        const tabName = tab.dataset.tab;
+
+        // Update active tab
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Update active content
+        tabContents.forEach(content => content.classList.remove('active'));
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+    });
+});
+
+// Resolution changing
+resolutionButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const resolution = button.dataset.resolution;
+        const [width, height] = resolution.split('x').map(Number);
+
+        // Update active button
+        resolutionButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        // Resize canvas
+        resizeCanvas(width, height);
+
+        // Update display
+        currentResolutionDisplay.textContent = resolution.replace('x', '×');
+    });
+});
+
+// ============================================================================
+// RENDERING SYSTEM
+// ============================================================================
+
+// Create a container for rendering sprites
+const antContainer = new PIXI.Container();
+antContainer.visible = true;
+antContainer.alpha = 1.0;
+app.stage.addChild(antContainer);
+
+// ============================================================================
+// GAME WORLD INITIALIZATION
+// ============================================================================
+
+const gameWorld = new GameWorld(app, antContainer);
+let antCount = 100;
+let isInitialized = false;
+
+// Initialize the game world (loads assets)
+async function initializeGame() {
+    try {
+        await gameWorld.init();
+        isInitialized = true;
+        console.log('🎮 Game initialized successfully');
+
+        // Spawn initial ants after initialization
+        gameWorld.spawnAnts(antCount);
+    } catch (error) {
+        console.error('Failed to initialize game:', error);
+    }
+}
+
+// Function to resize the canvas
+function resizeCanvas(width, height) {
+    currentWidth = width;
+    currentHeight = height;
+
+    app.renderer.resize(width, height);
+    gameWorld.updateWorldBounds(width, height);
+    console.log(`Canvas resized to ${width}×${height}`);
+}
+
+// Ant count controls
+const antCountButtons = document.querySelectorAll('.ant-count-btn');
+const currentAntCountDisplay = document.getElementById('current-ant-count');
+const customAntCountInput = document.getElementById('custom-ant-count');
+const applyCustomCountButton = document.getElementById('apply-custom-count');
+
+// Preset ant count buttons
+antCountButtons.forEach(button => {
+    button.addEventListener('click', () => {
+        const count = parseInt(button.dataset.count);
+
+        // Update active button
+        antCountButtons.forEach(btn => btn.classList.remove('active'));
+        button.classList.add('active');
+
+        // Update ant count
+        updateAntCount(count);
+    });
+});
+
+// Custom ant count input
+applyCustomCountButton.addEventListener('click', () => {
+    const count = parseInt(customAntCountInput.value);
+    if (count > 0 && count <= 10000) {
+        // Clear preset button selection
+        antCountButtons.forEach(btn => btn.classList.remove('active'));
+        updateAntCount(count);
+    }
+});
+
+customAntCountInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        applyCustomCountButton.click();
+    }
+});
+
+// Function to update ant count
+function updateAntCount(count) {
+    antCount = count;
+    if (isInitialized) {
+        gameWorld.spawnAnts(count);
+    }
+    currentAntCountDisplay.textContent = count.toLocaleString();
+    console.log(`Updated to ${count} ants`);
+}
+
+
+// ============================================================================
+// SPAWN INITIAL ANTS & START GAME LOOP
+// ============================================================================
+
+// Initialize game (loads assets, then spawns ants)
+initializeGame();
+
+// Main game loop
+app.ticker.add((ticker) => {
+    const delta = ticker.deltaTime;
+    gameWorld.update(delta);
+});
 
 console.log('Canvas initialized! Ready to render ants 🐜');
 
 // Export for potential external use
-export { app, antContainer, loadAntImage };
+export { app, antContainer, gameWorld };
 

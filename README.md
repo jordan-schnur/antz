@@ -30,7 +30,11 @@ Then open your browser to the URL shown in the terminal (usually http://localhos
 ## Features
 
 - ✅ Real-time canvas rendering with Pixi.js
-- ✅ Animated placeholder ant (moving in a circle)
+- ✅ Render 100s or 1000s of ants simultaneously
+- ✅ Independent ant movement with wandering behavior
+- ✅ Settings panel with tabs for Display and Simulation options
+- ✅ Multiple resolution presets (800×600 to 4K)
+- ✅ Dynamic ant count control (10 to 5000+ ants)
 - ✅ Easy-to-use function to load your own ant images
 - ✅ Hot module reloading for fast development
 - ✅ Responsive canvas setup
@@ -41,16 +45,26 @@ Then open your browser to the URL shown in the terminal (usually http://localhos
 - `index.js` - Canvas setup and ant rendering logic
 - `package.json` - Project dependencies and scripts
 
+## Using the Settings Panel
+
+Click the **⚙️ Settings** button in the top-right corner to access:
+
+### Display Tab
+- **Canvas Resolution**: Choose from 6 preset resolutions or use custom dimensions
+- Resolutions range from 800×600 to 4K (3840×2160)
+
+### Simulation Tab
+- **Number of Ants**: Choose from preset counts (10, 100, 500, 1K, 2.5K, 5K)
+- **Custom Count**: Enter any number from 1 to 10,000 ants
+- Watch performance as you scale up to thousands of ants!
+
 ## Customization
 
 ### Change Canvas Size
-Edit the `width` and `height` in `index.js`:
+Use the settings panel or edit the default in `index.js`:
 ```javascript
-await app.init({
-    width: 1024,
-    height: 768,
-    // ...
-});
+let currentWidth = 1280;
+let currentHeight = 720;
 ```
 
 ### Change Background Color
@@ -59,12 +73,11 @@ Edit the `backgroundColor` property (hex color without '#'):
 backgroundColor: 0x1099bb,  // Light blue
 ```
 
-### Add More Ants
-Use the `loadAntImage` function or `createPlaceholderAnt` function multiple times:
-```javascript
-loadAntImage('./ant.png', 200, 300);
-loadAntImage('./ant.png', 400, 200);
-```
+### Modify Ant Behavior
+Edit the `Ant` class in `index.js`:
+- `speed`: How fast ants move (0.5 to 2.0)
+- `turnSpeed`: How quickly they change direction
+- `wanderAngle`: Controls the curving path behavior
 
 ## Next Steps
 
