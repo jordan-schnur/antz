@@ -1,6 +1,5 @@
 import * as PIXI from 'pixi.js';
 import { GameWorld } from './src/world/GameWorld.js';
-import { createAntSprite } from './src/rendering/SpriteFactory.js';
 
 console.log('🐜 Antz Canvas Project - Happy developing ✨');
 
@@ -134,6 +133,47 @@ console.log('🎨 Ant container setup:', {
 const gameWorld = new GameWorld(app, antContainer);
 let antCount = 100;
 let isInitialized = false;
+// Pause state: when true we skip game-world updates but keep rendering active
+let isPaused = false;
+
+/**
+ * Toggle pause state and update UI.
+ * When paused we still run the Pixi ticker (rendering), but skip game logic updates.
+ */
+function setPaused(paused) {
+    isPaused = !!paused;
+    // Update FPS counter to indicate paused state
+    fpsCounter.textContent = isPaused ? `PAUSED — FPS: ${fps}` : `FPS: ${fps}`;
+    // Tint the FPS counter so it's obvious when paused
+    fpsCounter.style.color = isPaused ? '#FFD700' : '#00ff00';
+    // Slightly dim the ant layer as a visual affordance (keeps rendering)
+    antContainer.alpha = isPaused ? 0.7 : 1.0;
+}
+
+function togglePause() {
+    setPaused(!isPaused);
+}
+
+// Keyboard handling: Space toggles pause. Ignore when typing in inputs/textareas.
+window.addEventListener('keydown', (e) => {
+    // Use code to reliably detect Spacebar; fallback to key
+    if (e.code === 'Space' || e.key === ' ') {
+        const active = document.activeElement;
+        const tag = active && active.tagName ? active.tagName.toLowerCase() : '';
+
+        const isEditable = active && (
+            tag === 'input' ||
+            tag === 'textarea' ||
+            active.isContentEditable
+        );
+
+        if (!isEditable) {
+            // Prevent page scrolling when space is pressed
+            e.preventDefault();
+            togglePause();
+        }
+    }
+});
 
 // Initialize the game world (loads assets)
 async function initializeGame() {
@@ -220,7 +260,10 @@ initializeGame().then(() => {
 app.ticker.add((ticker) => {
     const delta = ticker.deltaTime;
     // Update game world each frame (advance entity logic and sync sprites)
-    gameWorld.update(delta);
+    // When paused we skip updating entity logic but keep rendering active.
+    if (!isPaused) {
+        gameWorld.update(delta);
+    }
 
     // Update FPS counter
     frameCount++;
@@ -230,7 +273,8 @@ app.ticker.add((ticker) => {
     // Update FPS display every 500ms for smooth readability
     if (deltaTime >= 500) {
         fps = Math.round((frameCount * 1000) / deltaTime);
-        fpsCounter.textContent = `FPS: ${fps}`;
+        // Respect paused state when writing the text (keeps PAUSED label)
+        fpsCounter.textContent = isPaused ? `PAUSED — FPS: ${fps}` : `FPS: ${fps}`;
         frameCount = 0;
         lastTime = currentTime;
     }

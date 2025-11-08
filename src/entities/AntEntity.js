@@ -1,8 +1,15 @@
+import {NeuralNet} from "../neuralnet/NeuralNet.js";
+
 /**
  * AntEntity - Pure game logic (no rendering)
  * Handles position, movement, and behavior
  */
 export class AntEntity {
+    /** @type {NeuralNet} */
+    brain = null;
+    /** @type {number} */
+    scope = 0;
+
     constructor(x, y, worldWidth, worldHeight) {
         // Position
         this.x = x;
@@ -29,6 +36,9 @@ export class AntEntity {
         this.health = 100;
         this.energy = 100;
         this.id = Math.random().toString(36).substr(2, 9);
+
+        // Neural brain
+        this.brain = new NeuralNet([5, 10, 2]);
     }
 
     /**
