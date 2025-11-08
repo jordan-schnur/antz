@@ -40,23 +40,37 @@ export class GameWorld {
 
         // Create visual sprite
         const sprite = createAntSprite();
-        sprite.x = entity.x;
-        sprite.y = entity.y;
-        this.container.addChild(sprite);
+        sprite.position.set(entity.x, entity.y);
+        sprite.zIndex = 100; // Ensure sprites are on top
+
+        // TEMPORARY: Add directly to stage to test if container is the problem
+        this.app.stage.addChild(sprite);
+        // this.container.addChild(sprite);
 
         // Store both
         this.entities.push(entity);
         this.sprites.push(sprite);
 
-        // Debug log first ant
-        if (this.entities.length === 1) {
-            console.log('First ant sprite created:', {
+        // Debug log first few ants
+        if (this.entities.length <= 3) {
+            console.log(`Ant ${this.entities.length} sprite created:`, {
                 position: { x: sprite.x, y: sprite.y },
+                worldTransform: sprite.worldTransform,
                 visible: sprite.visible,
                 alpha: sprite.alpha,
                 scale: { x: sprite.scale.x, y: sprite.scale.y },
                 tint: sprite.tint.toString(16),
-                texture: sprite.texture.valid
+                texture: {
+                    valid: sprite.texture.valid,
+                    width: sprite.texture.width,
+                    height: sprite.texture.height,
+                    baseTexture: sprite.texture.baseTexture?.valid
+                },
+                width: sprite.width,
+                height: sprite.height,
+                bounds: sprite.getBounds(),
+                parent: sprite.parent ? 'has parent' : 'NO PARENT',
+                renderable: sprite.renderable
             });
         }
 
@@ -70,13 +84,19 @@ export class GameWorld {
     spawnAnts(count) {
         this.clear();
 
+        console.log(`🐜 Spawning ${count} ants in world:`, {
+            worldWidth: this.app.screen.width,
+            worldHeight: this.app.screen.height,
+            containerChildren: this.container.children.length
+        });
+
         for (let i = 0; i < count; i++) {
             const x = Math.random() * this.app.screen.width;
             const y = Math.random() * this.app.screen.height;
             this.spawnAnt(x, y);
         }
 
-        console.log(`Spawned ${count} ants 🐜`);
+        console.log(`✅ Spawned ${count} ants, container now has ${this.container.children.length} children`);
     }
 
     /**
@@ -91,10 +111,10 @@ export class GameWorld {
             // Update game logic
             entity.update(delta);
 
-            // Sync sprite to entity state
-            sprite.x = entity.x;
-            sprite.y = entity.y;
-            sprite.rotation = entity.direction + Math.PI / 2;
+            // Sync sprite to entity state - use position.set for explicit transform update
+            sprite.position.set(entity.x, entity.y);
+            // TEMPORARILY DISABLED TO TEST IF ROTATION IS THE ISSUE
+            // sprite.rotation = entity.direction + Math.PI / 2;
         }
     }
 
@@ -102,9 +122,15 @@ export class GameWorld {
      * Clear all ants (removes entities and sprites)
      */
     clear() {
+        if (this.sprites.length > 0) {
+            console.log(`🧹 Clearing ${this.sprites.length} sprites from container`);
+        }
+
         // Remove all sprites from display
         for (let i = 0; i < this.sprites.length; i++) {
-            this.container.removeChild(this.sprites[i]);
+            // TEMPORARY: Remove from stage instead of container
+            this.app.stage.removeChild(this.sprites[i]);
+            // this.container.removeChild(this.sprites[i]);
             // Don't destroy the shared texture, just the sprite instance
             this.sprites[i].destroy({ children: true, texture: false, baseTexture: false });
         }

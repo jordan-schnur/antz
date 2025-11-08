@@ -42,8 +42,8 @@ export function createAntSprite() {
     sprite.alpha = 1.0;
     sprite.tint = 0xFFFFFF; // White tint (no color modification)
 
-    // Scale down the sprite to a reasonable size (ant.png might be large)
-    sprite.scale.set(0.1, 0.1);
+    // Scale down the sprite to a reasonable size - matching test sprite scale
+    sprite.scale.set(0.5, 0.5);
 
     return sprite;
 }

@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { GameWorld } from './src/world/GameWorld.js';
+import { createAntSprite } from './src/rendering/SpriteFactory.js';
 
 console.log('🐜 Antz Canvas Project - Happy developing ✨');
 
@@ -16,6 +17,13 @@ const app = new PIXI.Application({
     autoDensity: true,
 });
 globalThis.__PIXI_APP__ = app;
+
+console.log('🎮 Pixi Application created:', {
+    width: app.screen.width,
+    height: app.screen.height,
+    renderer: app.renderer.type,
+    backgroundColor: app.renderer.background.backgroundColor
+});
 
 // Add the canvas to the DOM
 document.getElementById('game-container').appendChild(app.view);
@@ -81,7 +89,46 @@ resolutionButtons.forEach(button => {
 const antContainer = new PIXI.Container();
 antContainer.visible = true;
 antContainer.alpha = 1.0;
+antContainer.renderable = true;
+antContainer.sortableChildren = true; // Enable z-index sorting
+
+// Add a semi-transparent background to the container to verify it renders
+// TEMPORARILY DISABLED TO TEST IF IT'S BLOCKING SPRITES
+// const containerBg = new PIXI.Graphics();
+// containerBg.beginFill(0x00FF00, 0.1); // Semi-transparent green
+// containerBg.drawRect(0, 0, currentWidth, currentHeight);
+// containerBg.endFill();
+// containerBg.zIndex = -1000; // Put it far in the back
+// antContainer.addChild(containerBg);
+// antContainer.sortableChildren = true; // Enable z-index sorting
+
 app.stage.addChild(antContainer);
+
+console.log('🎨 Ant container setup:', {
+    visible: antContainer.visible,
+    alpha: antContainer.alpha,
+    position: { x: antContainer.x, y: antContainer.y },
+    scale: { x: antContainer.scale.x, y: antContainer.scale.y },
+    rotation: antContainer.rotation,
+    parent: antContainer.parent ? 'has parent (stage)' : 'NO PARENT',
+    stage: app.stage,
+    stageChildren: app.stage.children.length,
+    worldTransform: antContainer.worldTransform,
+    children: antContainer.children.length,
+    mask: antContainer.mask,
+    filters: antContainer.filters,
+    cullable: antContainer.cullable,
+    sortableChildren: antContainer.sortableChildren
+});
+
+// Add a test red circle to verify rendering works
+const testGraphics = new PIXI.Graphics();
+testGraphics.beginFill(0xFF0000);
+testGraphics.drawCircle(0, 0, 50);
+testGraphics.endFill();
+testGraphics.position.set(100, 100);
+app.stage.addChild(testGraphics);
+console.log('🔴 Test red circle added at (100, 100) - should be visible if rendering works');
 
 // ============================================================================
 // GAME WORLD INITIALIZATION
@@ -167,12 +214,47 @@ function updateAntCount(count) {
 // ============================================================================
 
 // Initialize game (loads assets, then spawns ants)
-initializeGame();
+initializeGame().then(() => {
+    // Add a test ant sprite directly on stage to verify texture works
+    const testAntSprite = createAntSprite();
+    testAntSprite.position.set(640, 360); // Center of default screen
+    testAntSprite.scale.set(0.5, 0.5); // Larger for testing
+    app.stage.addChild(testAntSprite);
+    console.log('🐜 Test ant sprite added to stage (VISIBLE):', {
+        position: { x: testAntSprite.x, y: testAntSprite.y },
+        scale: { x: testAntSprite.scale.x, y: testAntSprite.scale.y },
+        visible: testAntSprite.visible,
+        alpha: testAntSprite.alpha,
+        renderable: testAntSprite.renderable,
+        worldVisible: testAntSprite.worldVisible,
+        parent: testAntSprite.parent.constructor.name
+    });
+
+    // Compare with a sprite in the container
+    if (antContainer.children.length > 0) {
+        const containerSprite = antContainer.children[0];
+        console.log('🐜 Container sprite (INVISIBLE?):', {
+            position: { x: containerSprite.x, y: containerSprite.y },
+            scale: { x: containerSprite.scale.x, y: containerSprite.scale.y },
+            visible: containerSprite.visible,
+            alpha: containerSprite.alpha,
+            renderable: containerSprite.renderable,
+            worldVisible: containerSprite.worldVisible,
+            parent: containerSprite.parent.constructor.name,
+            parentVisible: containerSprite.parent.visible,
+            parentAlpha: containerSprite.parent.alpha,
+            parentRenderable: containerSprite.parent.renderable
+        });
+    }
+}).catch(err => {
+    console.error('Failed to initialize:', err);
+});
 
 // Main game loop
+// TEMPORARILY DISABLED TO TEST IF UPDATE IS CAUSING INVISIBILITY
 app.ticker.add((ticker) => {
     const delta = ticker.deltaTime;
-    gameWorld.update(delta);
+    // gameWorld.update(delta);
 });
 
 console.log('Canvas initialized! Ready to render ants 🐜');
