@@ -219,7 +219,8 @@ initializeGame().then(() => {
 // Main game loop
 app.ticker.add((ticker) => {
     const delta = ticker.deltaTime;
-    // gameWorld.update(delta);
+    // Update game world each frame (advance entity logic and sync sprites)
+    gameWorld.update(delta);
 
     // Update FPS counter
     frameCount++;
@@ -239,4 +240,3 @@ console.log('Canvas initialized! Ready to render ants 🐜');
 
 // Export for potential external use
 export { app, antContainer, gameWorld };
-

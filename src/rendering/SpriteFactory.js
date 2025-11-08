@@ -35,7 +35,8 @@ export function createAntSprite() {
     }
 
     const sprite = new PIXI.Sprite(antTexture);
-    sprite.anchor.set(0.1, 0.1); // Center the sprite
+    // Center the sprite for correct rotation around center
+    sprite.anchor.set(0.5, 0.5);
 
     // Ensure sprite is visible
     sprite.visible = true;
@@ -56,9 +57,9 @@ export function createAntSprite() {
  */
 export function createAntSpriteFromTexture(texture) {
     const sprite = new PIXI.Sprite(texture);
+    // Center anchor consistently with default factory
     sprite.anchor.set(0.5, 0.5);
     // Scale to reasonable size (adjust as needed)
     sprite.scale.set(0.5, 0.5);
     return sprite;
 }
-
