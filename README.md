@@ -1,4 +1,4 @@
-# Antz Canvas Project 🐜
+# Antz Canvas Project 🐜 AI SLOP
 
 A simple real-time canvas rendering project using Pixi.js to display and animate ant images.
 
