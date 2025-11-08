@@ -28,18 +28,42 @@ The production build output is in `dist/`.
 
 ## Deploy to GitHub Pages
 
-This repo includes a GitHub Actions workflow that builds and deploys `dist/` to GitHub Pages on pushes to the `main` branch.
+This repo includes a GitHub Actions workflow that automatically builds and deploys to GitHub Pages on pushes to the `main` branch.
 
-Ensure your repository's default branch is `main`. The action runs automatically on push.
+### Live Demo
+
+Once deployed, your app will be available at: **https://jordan-schnur.github.io/antz/**
+
+### Automatic Deployment
+
+The GitHub Actions workflow (`.github/workflows/gh-pages.yml`) automatically:
+1. Installs dependencies
+2. Builds the production bundle
+3. Deploys to the `gh-pages` branch
+
+### Setup GitHub Pages (One-time)
+
+To enable GitHub Pages for this repository:
+
+1. Go to your repository on GitHub: https://github.com/jordan-schnur/antz
+2. Click **Settings** → **Pages** (in the left sidebar)
+3. Under "Build and deployment":
+   - **Source**: Select "Deploy from a branch"
+   - **Branch**: Select `gh-pages` and `/ (root)`, then click Save
+4. Push to `main` branch - the workflow will run automatically
+5. Wait a few minutes, then visit https://jordan-schnur.github.io/antz/
+
+### Manual Deployment
 
 If you'd like to deploy manually:
 
 ```bash
 npm run build
-npx surge dist/ # or use any static hosting
+# Then upload the dist/ folder to any static hosting service
 ```
 
 ## Notes
-- The app uses Vite with `base: './'` in `vite.config.js` so it can be served from a subpath (GitHub Pages).
-- Assets like `ant.png` are loaded with a relative path so they work after building.
+- The app uses Vite with `base: '/antz/'` in `vite.config.js` so it works correctly on GitHub Pages.
+- Assets like `ant.png` are loaded with the correct path for the build output.
+- The GitHub Actions workflow requires the `gh-pages` branch to be set as the Pages source.
 
