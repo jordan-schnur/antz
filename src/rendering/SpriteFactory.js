@@ -5,12 +5,13 @@ let antTexture = null;
 
 /**
  * Load the ant texture from the project root `/ant.png`.
+ * Use a relative path (no leading slash) so built sites and GitHub Pages resolve correctly.
  * @returns {Promise<PIXI.Texture>} The loaded ant texture
  */
 export async function loadAntTexture() {
     if (!antTexture) {
         try {
-            antTexture = await PIXI.Assets.load('/ant.png');
+            antTexture = await PIXI.Assets.load('ant.png');
             console.log('✅ Ant texture loaded successfully', {
                 width: antTexture.width,
                 height: antTexture.height,
