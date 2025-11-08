@@ -121,15 +121,6 @@ console.log('🎨 Ant container setup:', {
     sortableChildren: antContainer.sortableChildren
 });
 
-// Add a test red circle to verify rendering works
-const testGraphics = new PIXI.Graphics();
-testGraphics.beginFill(0xFF0000);
-testGraphics.drawCircle(0, 0, 50);
-testGraphics.endFill();
-testGraphics.position.set(100, 100);
-app.stage.addChild(testGraphics);
-console.log('🔴 Test red circle added at (100, 100) - should be visible if rendering works');
-
 // ============================================================================
 // GAME WORLD INITIALIZATION
 // ============================================================================
@@ -215,37 +206,6 @@ function updateAntCount(count) {
 
 // Initialize game (loads assets, then spawns ants)
 initializeGame().then(() => {
-    // Add a test ant sprite directly on stage to verify texture works
-    const testAntSprite = createAntSprite();
-    testAntSprite.position.set(640, 360); // Center of default screen
-    testAntSprite.scale.set(0.5, 0.5); // Larger for testing
-    app.stage.addChild(testAntSprite);
-    console.log('🐜 Test ant sprite added to stage (VISIBLE):', {
-        position: { x: testAntSprite.x, y: testAntSprite.y },
-        scale: { x: testAntSprite.scale.x, y: testAntSprite.scale.y },
-        visible: testAntSprite.visible,
-        alpha: testAntSprite.alpha,
-        renderable: testAntSprite.renderable,
-        worldVisible: testAntSprite.worldVisible,
-        parent: testAntSprite.parent.constructor.name
-    });
-
-    // Compare with a sprite in the container
-    if (antContainer.children.length > 0) {
-        const containerSprite = antContainer.children[0];
-        console.log('🐜 Container sprite (INVISIBLE?):', {
-            position: { x: containerSprite.x, y: containerSprite.y },
-            scale: { x: containerSprite.scale.x, y: containerSprite.scale.y },
-            visible: containerSprite.visible,
-            alpha: containerSprite.alpha,
-            renderable: containerSprite.renderable,
-            worldVisible: containerSprite.worldVisible,
-            parent: containerSprite.parent.constructor.name,
-            parentVisible: containerSprite.parent.visible,
-            parentAlpha: containerSprite.parent.alpha,
-            parentRenderable: containerSprite.parent.renderable
-        });
-    }
 }).catch(err => {
     console.error('Failed to initialize:', err);
 });

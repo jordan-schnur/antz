@@ -35,7 +35,7 @@ export function createAntSprite() {
     }
 
     const sprite = new PIXI.Sprite(antTexture);
-    sprite.anchor.set(0.5, 0.5); // Center the sprite
+    sprite.anchor.set(0.1, 0.1); // Center the sprite
 
     // Ensure sprite is visible
     sprite.visible = true;
@@ -43,7 +43,7 @@ export function createAntSprite() {
     sprite.tint = 0xFFFFFF; // White tint (no color modification)
 
     // Scale down the sprite to a reasonable size - matching test sprite scale
-    sprite.scale.set(0.5, 0.5);
+    sprite.scale.set(0.1, 0.1);
 
     return sprite;
 }
