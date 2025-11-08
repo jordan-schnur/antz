@@ -3,11 +3,15 @@ import { GameWorld } from './src/world/GameWorld.js';
 
 console.log('🐜 Antz Canvas Project - Happy developing ✨');
 
-// Default resolution
+/** Default canvas width (pixels) */
 let currentWidth = 1280;
+/** Default canvas height (pixels) */
 let currentHeight = 720;
 
-// Create the Pixi Application
+/**
+ * The shared Pixi Application.
+ * @type {PIXI.Application}
+ */
 const app = new PIXI.Application({
     width: currentWidth,
     height: currentHeight,
@@ -24,16 +28,15 @@ console.log('🎮 Pixi Application created:', {
     backgroundColor: app.renderer.background.backgroundColor
 });
 
-// Add the canvas to the DOM
+// Attach canvas to DOM
 document.getElementById('game-container').appendChild(app.view);
 
-// FPS Counter
+/** DOM element showing FPS */
 const fpsCounter = document.getElementById('fps-counter');
 let lastTime = performance.now();
 let frameCount = 0;
 let fps = 60;
 
-// Settings Panel Logic
 const settingsPanel = document.getElementById('settings-panel');
 const settingsToggle = document.getElementById('settings-toggle');
 const closeSettings = document.getElementById('close-settings');
@@ -42,7 +45,6 @@ const tabContents = document.querySelectorAll('.tab-content');
 const resolutionButtons = document.querySelectorAll('.resolution-btn');
 const currentResolutionDisplay = document.getElementById('current-resolution');
 
-// Toggle settings panel
 settingsToggle.addEventListener('click', () => {
     settingsPanel.classList.remove('hidden');
     settingsToggle.classList.add('hidden');
@@ -53,60 +55,34 @@ closeSettings.addEventListener('click', () => {
     settingsToggle.classList.remove('hidden');
 });
 
-// Tab switching
 tabs.forEach(tab => {
     tab.addEventListener('click', () => {
         const tabName = tab.dataset.tab;
-
-        // Update active tab
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-
-        // Update active content
         tabContents.forEach(content => content.classList.remove('active'));
         document.getElementById(`${tabName}-tab`).classList.add('active');
     });
 });
 
-// Resolution changing
 resolutionButtons.forEach(button => {
     button.addEventListener('click', () => {
         const resolution = button.dataset.resolution;
         const [width, height] = resolution.split('x').map(Number);
-
-        // Update active button
         resolutionButtons.forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
-
-        // Resize canvas
         resizeCanvas(width, height);
-
-        // Update display
         currentResolutionDisplay.textContent = resolution.replace('x', '×');
     });
 });
 
-// ============================================================================
-// RENDERING SYSTEM
-// ============================================================================
-
-// Create a container for rendering sprites
+// Rendering container for ants
+/** @type {PIXI.Container} */
 const antContainer = new PIXI.Container();
 antContainer.visible = true;
 antContainer.alpha = 1.0;
 antContainer.renderable = true;
-antContainer.sortableChildren = true; // Enable z-index sorting
-
-// Add a semi-transparent background to the container to verify it renders
-// TEMPORARILY DISABLED TO TEST IF IT'S BLOCKING SPRITES
-// const containerBg = new PIXI.Graphics();
-// containerBg.beginFill(0x00FF00, 0.1); // Semi-transparent green
-// containerBg.drawRect(0, 0, currentWidth, currentHeight);
-// containerBg.endFill();
-// containerBg.zIndex = -1000; // Put it far in the back
-// antContainer.addChild(containerBg);
-// antContainer.sortableChildren = true; // Enable z-index sorting
-
+antContainer.sortableChildren = true;
 app.stage.addChild(antContainer);
 
 console.log('🎨 Ant container setup:', {
@@ -126,104 +102,87 @@ console.log('🎨 Ant container setup:', {
     sortableChildren: antContainer.sortableChildren
 });
 
-// ============================================================================
-// GAME WORLD INITIALIZATION
-// ============================================================================
-
+// Initialize game world
+/** @type {GameWorld} */
 const gameWorld = new GameWorld(app, antContainer);
 let antCount = 100;
 let isInitialized = false;
-// Pause state: when true we skip game-world updates but keep rendering active
-let isPaused = false;
+let isPaused = false; // when true skip game-world updates but keep rendering
 
 /**
- * Toggle pause state and update UI.
- * When paused we still run the Pixi ticker (rendering), but skip game logic updates.
+ * Update pause state and UI.
+ * @param {boolean} paused
  */
 function setPaused(paused) {
     isPaused = !!paused;
-    // Update FPS counter to indicate paused state
     fpsCounter.textContent = isPaused ? `PAUSED — FPS: ${fps}` : `FPS: ${fps}`;
-    // Tint the FPS counter so it's obvious when paused
     fpsCounter.style.color = isPaused ? '#FFD700' : '#00ff00';
-    // Slightly dim the ant layer as a visual affordance (keeps rendering)
     antContainer.alpha = isPaused ? 0.7 : 1.0;
 }
 
+/** Toggle the paused state. */
 function togglePause() {
     setPaused(!isPaused);
 }
 
-// Keyboard handling: Space toggles pause. Ignore when typing in inputs/textareas.
+// Keyboard: Space toggles pause unless typing in an input
 window.addEventListener('keydown', (e) => {
-    // Use code to reliably detect Spacebar; fallback to key
     if (e.code === 'Space' || e.key === ' ') {
         const active = document.activeElement;
         const tag = active && active.tagName ? active.tagName.toLowerCase() : '';
-
-        const isEditable = active && (
-            tag === 'input' ||
-            tag === 'textarea' ||
-            active.isContentEditable
-        );
-
+        const isEditable = active && (tag === 'input' || tag === 'textarea' || active.isContentEditable);
         if (!isEditable) {
-            // Prevent page scrolling when space is pressed
             e.preventDefault();
             togglePause();
         }
     }
 });
 
-// Initialize the game world (loads assets)
+/**
+ * Initialize the game (loads assets through GameWorld).
+ * @returns {Promise<void>}
+ */
 async function initializeGame() {
     try {
         await gameWorld.init();
         isInitialized = true;
         console.log('🎮 Game initialized successfully');
-
-        // Spawn initial ants after initialization
         gameWorld.spawnAnts(antCount);
     } catch (error) {
         console.error('Failed to initialize game:', error);
     }
 }
 
-// Function to resize the canvas
+/**
+ * Resize the renderer and update world bounds.
+ * @param {number} width
+ * @param {number} height
+ */
 function resizeCanvas(width, height) {
     currentWidth = width;
     currentHeight = height;
-
     app.renderer.resize(width, height);
     gameWorld.updateWorldBounds(width, height);
     console.log(`Canvas resized to ${width}×${height}`);
 }
 
-// Ant count controls
 const antCountButtons = document.querySelectorAll('.ant-count-btn');
 const currentAntCountDisplay = document.getElementById('current-ant-count');
 const customAntCountInput = document.getElementById('custom-ant-count');
 const applyCustomCountButton = document.getElementById('apply-custom-count');
 
-// Preset ant count buttons
 antCountButtons.forEach(button => {
     button.addEventListener('click', () => {
         const count = parseInt(button.dataset.count);
-
-        // Update active button
         antCountButtons.forEach(btn => btn.classList.remove('active'));
         button.classList.add('active');
-
-        // Update ant count
         updateAntCount(count);
     });
 });
 
-// Custom ant count input
 applyCustomCountButton.addEventListener('click', () => {
     const count = parseInt(customAntCountInput.value);
     if (count > 0 && count <= 10000) {
-        // Clear preset button selection
         antCountButtons.forEach(btn => btn.classList.remove('active'));
         updateAntCount(count);
     }
@@ -235,7 +194,10 @@ customAntCountInput.addEventListener('keypress', (e) => {
     }
 });
 
-// Function to update ant count
+/**
+ * Update ant population.
+ * @param {number} count
+ */
 function updateAntCount(count) {
     antCount = count;
     if (isInitialized) {
@@ -245,35 +207,22 @@ function updateAntCount(count) {
     console.log(`Updated to ${count} ants`);
 }
 
-
-// ============================================================================
-// SPAWN INITIAL ANTS & START GAME LOOP
-// ============================================================================
-
-// Initialize game (loads assets, then spawns ants)
-initializeGame().then(() => {
-}).catch(err => {
+// Start
+initializeGame().then(() => {}).catch(err => {
     console.error('Failed to initialize:', err);
 });
 
-// Main game loop
+// Main loop: advance game logic when not paused
 app.ticker.add((ticker) => {
     const delta = ticker.deltaTime;
-    // Update game world each frame (advance entity logic and sync sprites)
-    // When paused we skip updating entity logic but keep rendering active.
     if (!isPaused) {
         gameWorld.update(delta);
     }
-
-    // Update FPS counter
     frameCount++;
     const currentTime = performance.now();
     const deltaTime = currentTime - lastTime;
-
-    // Update FPS display every 500ms for smooth readability
     if (deltaTime >= 500) {
         fps = Math.round((frameCount * 1000) / deltaTime);
-        // Respect paused state when writing the text (keeps PAUSED label)
         fpsCounter.textContent = isPaused ? `PAUSED — FPS: ${fps}` : `FPS: ${fps}`;
         frameCount = 0;
         lastTime = currentTime;
@@ -282,5 +231,8 @@ app.ticker.add((ticker) => {
 
 console.log('Canvas initialized! Ready to render ants 🐜');
 
-// Export for potential external use
+/**
+ * Exports for external use.
+ * @type {{app: PIXI.Application, antContainer: PIXI.Container, gameWorld: GameWorld}}
+ */
 export { app, antContainer, gameWorld };

@@ -1,10 +1,10 @@
 import * as PIXI from 'pixi.js';
 
-// Cached ant texture (loaded once and reused)
+/** @type {PIXI.Texture | null} Cached ant texture (loaded once and reused) */
 let antTexture = null;
 
 /**
- * Load the ant texture from ant.png
+ * Load the ant texture from the project root `/ant.png`.
  * @returns {Promise<PIXI.Texture>} The loaded ant texture
  */
 export async function loadAntTexture() {
@@ -26,8 +26,8 @@ export async function loadAntTexture() {
 }
 
 /**
- * Factory function to create ant sprite using the ant.png image
- * @returns {PIXI.Sprite} Ant sprite with texture
+ * Create a sprite using the shared ant texture.
+ * @returns {PIXI.Sprite}
  */
 export function createAntSprite() {
     if (!antTexture) {
@@ -35,31 +35,23 @@ export function createAntSprite() {
     }
 
     const sprite = new PIXI.Sprite(antTexture);
-    // Center the sprite for correct rotation around center
     sprite.anchor.set(0.5, 0.5);
-
-    // Ensure sprite is visible
     sprite.visible = true;
     sprite.alpha = 1.0;
-    sprite.tint = 0xFFFFFF; // White tint (no color modification)
-
-    // Scale down the sprite to a reasonable size - matching test sprite scale
+    sprite.tint = 0xFFFFFF;
     sprite.scale.set(0.1, 0.1);
 
     return sprite;
 }
 
-
 /**
- * Create ant sprite from custom texture
- * @param {PIXI.Texture} texture - Custom texture
- * @returns {PIXI.Sprite} Ant sprite
+ * Create an ant sprite from a provided texture.
+ * @param {PIXI.Texture} texture
+ * @returns {PIXI.Sprite}
  */
 export function createAntSpriteFromTexture(texture) {
     const sprite = new PIXI.Sprite(texture);
-    // Center anchor consistently with default factory
     sprite.anchor.set(0.5, 0.5);
-    // Scale to reasonable size (adjust as needed)
     sprite.scale.set(0.5, 0.5);
     return sprite;
 }
